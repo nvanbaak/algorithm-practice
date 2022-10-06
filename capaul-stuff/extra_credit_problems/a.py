@@ -27,4 +27,4 @@ for input in range(num_lines):
             levels.append(curr_level)
             total += curr_level
 
-    print(total)
+    print(f"{input+1}: {n} {total}")
