@@ -6,6 +6,9 @@
 # split the text into words, and check if each word is in the list
 # You know what, we'll start there and optimize later
 
+# Afterthoughts: Refactoring to use dictionaries might be faster since they're
+# based on hash tables, try this later
+
 import sys
 
 problem_sets = int(sys.stdin.readline().strip())
