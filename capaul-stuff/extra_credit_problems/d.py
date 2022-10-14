@@ -6,6 +6,9 @@
 # less computationally intensive.  The hard part is going to be writing a function for 
 # base conversion because that's new for me.
 
+# update: my CS buddies have informed me that int() takes a base argument so I'm just 
+# doing that instead.
+
 import sys
 
 digit_dict = {
@@ -67,6 +70,7 @@ def check_if_prime(num_to_check):
 def convert_to_base_ten(num, base_from):
     """
     given an integer num >= 0 in base base_from, returns the number in base 10
+    Turns out you can just use int(num, base_from) so this function isn't called.
     """
     # In base N, each digit of a number represents that number times N^X, where
     # X is that digit's position in the number.
@@ -78,7 +82,7 @@ def convert_to_base_ten(num, base_from):
     # python iterates left to right so we reverse the number first
     reversed_num = str(num)[::-1]
     total = 0
-    digit_position = 1
+    digit_position = 0
 
     for digit in reversed_num:
         if digit != 0:
@@ -115,7 +119,7 @@ def search_palindromes(test_str, str_len, odd_num, digit_add, digit_options, bas
 
         final_str = f"{test_str}{reverse_str}"
 
-        base_ten_value = convert_to_base_ten(final_str, base)
+        base_ten_value = int(final_str, base) # thanks to @Superbird for telling me this was an option
 
         if check_if_prime(base_ten_value):
             return 1
@@ -145,17 +149,7 @@ while True:
     digit_options = digit_list[:base]
 
     # search palindromes for primes
-    # we run the first pass outside of the recursive function so we can eliminate even numbers
-    primes_found = 1 if digits == 1 else 0 # this algo doesn't find 2, so we're counting it manually
-
-    skip_because_even = True
-    for digit in digit_options:
-        if skip_because_even:
-            skip_because_even = False
-            continue
-
-        primes_found += search_palindromes(digit, 1, odd_num_of_digits, digit_additions, digit_options, base)
-        skip_because_even = True
+    primes_found = search_palindromes("", 0, odd_num_of_digits, digit_additions, digit_options, base)
 
     print(f"The number of {digits}-digit palindromic primes < 2^31 in base {base}.")
     print(f"What is {primes_found}?\n")
