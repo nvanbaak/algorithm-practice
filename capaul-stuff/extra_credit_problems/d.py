@@ -6,7 +6,6 @@
 # less computationally intensive.  The hard part is going to be writing a function for 
 # base conversion because that's new for me.
 
-from cmath import sqrt
 import sys
 
 digit_dict = {
@@ -82,8 +81,7 @@ def convert_to_base_ten(num, base_from):
     digit_position = 1
 
     for digit in reversed_num:
-
-        if int(digit) > 0:
+        if digit != 0:
             digit_base_ten = digit_dict[digit]
             digit_value = digit_base_ten * (base_from ** digit_position)
             total += digit_value
@@ -112,7 +110,7 @@ def search_palindromes(test_str, str_len, odd_num, digit_add, digit_options, bas
         # remove first character of reverse string for odd number of digits to avoid repeating middle digit
         if odd_num and digit_add > 1:
             reverse_str = reverse_str[1:]
-        elif digit_add == 1:
+        elif odd_num and digit_add == 1:
             reverse_str = ""
 
         final_str = f"{test_str}{reverse_str}"
@@ -120,7 +118,6 @@ def search_palindromes(test_str, str_len, odd_num, digit_add, digit_options, bas
         base_ten_value = convert_to_base_ten(final_str, base)
 
         if check_if_prime(base_ten_value):
-            print(f"Prime found: {base_ten_value}")
             return 1
         else: return 0
 
@@ -161,5 +158,5 @@ while True:
         skip_because_even = True
 
     print(f"The number of {digits}-digit palindromic primes < 2^31 in base {base}.")
-    print(f"What is {primes_found}?")
+    print(f"What is {primes_found}?\n")
 
