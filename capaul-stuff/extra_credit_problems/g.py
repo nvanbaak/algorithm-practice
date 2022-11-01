@@ -20,7 +20,6 @@
 #   * We can further optimize by only working with slices of the initial map.
 
 import sys
-from turtle import left
 import numpy as np
 
 test_cases = int(sys.stdin.readline().strip()) # first line of input tells us how many cases we're solving
@@ -40,9 +39,7 @@ def is_valid_move(map, pos_x, pos_y):
     Returns True if the location on the map is valid to move to.
     False otherwise.
     """
-
-    can_move = map[pos_y][pos_x] < 3
-
+    can_move = map[pos_x][pos_y] < 3
     return can_move
 
 def frog_can_wait(map, frog_x, frog_y):
@@ -67,7 +64,7 @@ def update_and_render_cars(map, map_xy, frog_y, total_turns, left_cars, right_ca
 
     net_shift = total_turns % map_width # every $width tiles nets no change of position
     # set the frog's row as active
-    active_rows = (frog_y, frog_y-1) if frog_y > 0 else (frog_y)
+    active_rows = (frog_y, frog_y-1) if frog_y > 0 else [frog_y]
 
     for row_index in active_rows:
         list_index = 0
@@ -119,7 +116,7 @@ def find_path(map : np.array, map_xy, frog_xy, left_cars, right_cars, turns_on_t
     frog_x, frog_y = frog_xy
 
     # increment counters
-    if map[frog_y][frog_x] == 1.0: turns_on_road += 1
+    if map[frog_x][frog_y] == 1.0: turns_on_road += 1
     total_turns += 1
     turns_on_this_row += 1
 
@@ -129,36 +126,61 @@ def find_path(map : np.array, map_xy, frog_xy, left_cars, right_cars, turns_on_t
 
     # determine pathing options
     path_options = []
-    solution = None
+    solution = -1
 
-    # forward
+    # case: forward
     if frog_y > 0: # only attempt to move forward if we're not on the last row
         if is_valid_move(rendered_map, frog_x, frog_y-1):
             # if it's a water tile, we're done
             if rendered_map[frog_y-1][frog_x] == 2.0: return turns_on_road
             else:
-                new_frog_xy = (frog_x[0], frog_y-1)
-                solution = find_path(case_map, map_xy, new_frog_xy, left_cars.copy(), right_cars.copy(), turns_on_this_row, turns_on_road, total_turns, min_solution, max_solution)
+                new_frog_xy = (frog_x, frog_y-1)
+                turns_on_next_row = 0
+                solution = find_path(case_map, map_xy, new_frog_xy, left_cars.copy(), right_cars.copy(), turns_on_next_row, turns_on_road, total_turns, min_solution, max_solution)
+                if solution <= min_solution:
+                    return solution
 
-    # 
+    # evaluate same-row options only if we haven't used up our time on this row
+    if turns_on_this_row <= map_xy[0]:
+        # case: right
+        if is_valid_move(rendered_map, frog_x+1, frog_y):
+            if frog_x >= map_xy[0]-1:
+                new_x = 0
+                path_options.append((new_x, frog_y))
+            else: path_options.append((frog_x+1, frog_y))
 
-    # left
-    if is_valid_move(rendered_map, frog_x-1, frog_y):
-        if frog_x == 0:
-            new_x = map_xy[0]-1
-            path_options.append((new_x, frog_y))
-        pass
+        # case: left
+        if is_valid_move(rendered_map, frog_x-1, frog_y):
+            if frog_x == 0:
+                new_x = map_xy[0]-1
+                path_options.append((new_x, frog_y))
+            else: path_options.append((frog_x-1, frog_y))
 
-    return -1
+        # case: wait
+        if frog_can_wait(rendered_map, frog_x, frog_y):
+            path_options.append((frog_x, frog_y))
+
+    # evaluate cases
+    for path_step in path_options:
+        solution_option = find_path(case_map, map_xy, path_step, left_cars.copy(), right_cars.copy(), turns_on_this_row, turns_on_road, total_turns, min_solution, max_solution)
+
+        if solution_option <= min_solution:
+            return solution_option
+
+        if solution == -1 and solution_option > solution:
+            solution = solution_option
+        elif solution > -1 and solution_option < solution:
+            solution = solution_option
+
+    return solution
 
 
 for _ in range(test_cases):
     # build map from input
     height, width = sys.stdin.readline().split()
-    print(f"width: {width}; length: {height}")
 
     # setup tracking variables
-    case_map = []
+    map_contents = []
     left_cars = []
     right_cars = []
     frog_xy = None
@@ -187,13 +209,13 @@ for _ in range(test_cases):
                 road_tiles_this_row += 1
             col_index += 1
 
-        case_map.append(line_list)
+        map_contents.append(line_list)
         road_counts.append(road_tiles_this_row)
         left_cars.append(left_cars_this_row)
         right_cars.append(right_cars_this_row)
 
-    case_map = np.array(case_map) # convert to np array
-    map_xy = case_map.shape()
+    case_map = np.array(map_contents) # convert to np array
+    map_xy = case_map.shape
 
     # determine best and worst cases
     min_solution = 0
