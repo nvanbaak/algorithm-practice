@@ -40,7 +40,10 @@ def is_valid_move(map, pos_x, pos_y):
     Returns True if the location on the map is valid to move to.
     False otherwise.
     """
-    return map[pos_y][pos_x] < 3
+
+    can_move = map[pos_y][pos_x] < 3
+
+    return can_move
 
 def frog_can_wait(map, frog_x, frog_y):
     """
@@ -118,6 +121,7 @@ def find_path(map : np.array, map_xy, frog_xy, left_cars, right_cars, turns_on_t
     # increment counters
     if map[frog_y][frog_x] == 1.0: turns_on_road += 1
     total_turns += 1
+    turns_on_this_row += 1
 
     # frog and cars move at the same time, which functionally means the frog's movement
     # options are determined after the cars move
@@ -126,7 +130,6 @@ def find_path(map : np.array, map_xy, frog_xy, left_cars, right_cars, turns_on_t
     # determine pathing options
     path_options = []
     solution = None
-    # 
 
     # forward
     if frog_y > 0: # only attempt to move forward if we're not on the last row
@@ -134,7 +137,10 @@ def find_path(map : np.array, map_xy, frog_xy, left_cars, right_cars, turns_on_t
             # if it's a water tile, we're done
             if rendered_map[frog_y-1][frog_x] == 2.0: return turns_on_road
             else:
-                solution
+                new_frog_xy = (frog_x[0], frog_y-1)
+                solution = find_path(case_map, map_xy, new_frog_xy, left_cars.copy(), right_cars.copy(), turns_on_this_row, turns_on_road, total_turns, min_solution, max_solution)
+
+    # 
 
     # left
     if is_valid_move(rendered_map, frog_x-1, frog_y):
@@ -202,6 +208,6 @@ for _ in range(test_cases):
         print(1)
         continue
 
-    solution = find_path(case_map, map_xy, frog_xy, left_cars, right_cars, 0, 0, min_solution, max_solution)
+    solution = find_path(case_map, map_xy, frog_xy, left_cars, right_cars, 0, 0, 0, min_solution, max_solution)
     if solution > 0: print(solution)
     else: print("Impassable")
